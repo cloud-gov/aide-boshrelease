@@ -1,0 +1,29 @@
+#!/bin/bash
+
+set -x
+
+JOB_DIR=/var/vcap/jobs/aide
+PACKAGE_DIR=/var/vcap/packages/aide
+
+$PACKAGE_DIR/bin/aide --check > report.txt
+
+# aide exits nonzero when it finds a modification, so wait until here to set -e
+set -e
+
+logger -t aide.report -f report.txt
+
+# report has lines like:
+#           Added entries:     74
+added=$(grep 'Added entries:' report.txt | awk '{ print $3 }')
+removed=$(grep 'Removed entries:' report.txt | awk '{ print $3 }')
+changed=$(grep 'Changed entries:' report.txt | awk '{ print $3 }')
+
+echo 'aide_violation_count {action="added"}' ${added} > aide.prom
+echo 'aide_violation_count {action="removed"}' ${removed} >> aide.prom
+echo 'aide_violation_count {action="changed"}' ${changed} >> aide.prom
+
+mv aide.prom /var/vcap/jobs/node_exporter/config/aide.prom
+
+rm report.txt
+
+touch /var/vcap/data/aide/report-ran

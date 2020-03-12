@@ -1,0 +1,6 @@
+#!/bin/bash
+
+PATH=/var/vcap/packages/aide/bin:$PATH
+
+aide --update
+mv /var/vcap/store/aide/conf/aide.db.new /var/vcap/store/aide/conf/aide.db

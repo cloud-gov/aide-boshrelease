@@ -1,0 +1,12 @@
+#!/bin/bash
+
+PATH=/var/vcap/packages/aide/bin:$PATH
+
+CONF_DIR=/var/vcap/store/aide/conf
+
+mkdir -p ${CONF_DIR}
+
+if [[ ! -f ${CONF_DIR}/aide.db ]]; then
+  aide --init
+  mv ${CONF_DIR}/aide.db.new ${CONF_DIR}/aide.db
+fi

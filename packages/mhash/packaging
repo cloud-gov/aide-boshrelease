@@ -1,0 +1,10 @@
+set -e
+
+tar xvzf mhash-0.9.9.9.tar.gz
+
+pushd mhash-0.9.9.9
+	./configure --prefix=${BOSH_INSTALL_TARGET} --enable-static=yes
+
+	make
+	make install
+popd
