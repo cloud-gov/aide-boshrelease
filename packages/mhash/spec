@@ -1,0 +1,7 @@
+---
+name: mhash
+
+dependencies: []
+
+files:
+- mhash-0.9.9.9.tar.gz

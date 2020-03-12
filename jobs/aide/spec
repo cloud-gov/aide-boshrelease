@@ -1,0 +1,15 @@
+---
+name: aide
+
+templates:
+  conf/aide.conf.erb: conf/aide.conf
+  bin/pre-start: bin/pre-start
+  bin/post-start: bin/post-start
+  bin/run-report.sh.erb: bin/run-report.sh
+
+packages:
+- aide
+
+properties:
+  aide_rules:
+    description: Additional rules for AIDE to apply

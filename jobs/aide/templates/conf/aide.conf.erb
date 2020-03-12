@@ -1,0 +1,106 @@
+#AIDE conf
+
+# Here are all the things we can check - these are the default rules
+#
+#p:      permissions
+#ftype:  file type
+#i:      inode
+#n:      number of links
+#l:      link name
+#u:      user
+#g:      group
+#s:      size
+#b:      block count
+#m:      mtime
+#a:      atime
+#c:      ctime
+#S:      check for growing size
+#I:      ignore changed filename
+#md5:    md5 checksum
+#sha1:   sha1 checksum
+#sha256: sha256 checksum
+#sha512: sha512 checksum
+#rmd160: rmd160 checksum
+#tiger:  tiger checksum
+#haval:  haval checksum
+#crc32:  crc32 checksum
+#R:      p+ftupe+i+l+n+u+g+s+m+c+md5
+#L:      p+ftype+i+l+n+u+g
+#E:      Empty group
+#>:      Growing file p+ftype+l+u+g+i+n+S
+#The following are available if you have mhash support enabled:
+#gost:   gost checksum
+#whirlpool: whirlpool checksum
+#The following are available and added to the default groups R, L and >
+#only when explicitly enabled using configure:
+#acl:    access control list
+#selinux SELinux security context
+#xattrs:  extended file attributes
+#e2fsattrs: file attributes on a second extended file system
+
+# You can also create custom rules like:
+# (most of these borrowed from Tripwire)
+TEMPFILE = p+ftype+u+g
+# this is L from above, but without inode checks
+LNOI = p+ftype+l+n+u+g
+
+# don't mess with AIDE
+/var/vcap/packages/aide R
+/var/vcap/jobs/aide R
+
+
+# stuff that doesn't matter
+!/tmp
+!/proc
+!/var/log/.*
+!/var/spool/.*
+
+
+# etc stuff
+# Bosh messes with all these, really
+/etc p+ftype+i+l+n+u+g+s+md5
+/etc/hosts      LNOI
+/etc/g?shadow-? LNOI
+/etc/group-?    LNOI
+/etc/passwd-?   LNOI
+/etc/subgid-?   LNOI
+/etc/subuid-?   LNOI
+
+# bosh-specific
+/var/vcap/packages R
+!/var/vcap/sys/log/.*
+/var/vcap/sys/run TEMPFILE
+
+
+# binaries and libraries
+/usr/local/bin           R
+/usr/local/doc           R
+/usr/local/etc           R
+/usr/local/games         R
+/usr/local/include       R
+/usr/local/lib           R
+/usr/local/libexec       R
+/usr/local/man           R
+/usr/local/sbin          R
+/usr/local/share         R
+/usr/local/src           R
+/usr/local/sysinfo       R
+/usr/local               R
+/usr/bin                 R
+/usr/lib                 R
+/usr/libexec             R
+/usr/sbin                R
+/usr/X11R6/lib           R
+/sbin                    R
+/lib                     R
+/bin                     R
+
+# temp files
+
+/usr/tmp                 TEMPFILE
+/var/tmp                 TEMPFILE
+/tmp                     TEMPFILE
+
+# extras from config
+<%= p('aide_rules') %>
+

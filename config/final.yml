@@ -1,0 +1,6 @@
+---
+name: aide
+blobstore:
+  provider: local
+  options:
+    blobstore_path: /tmp/aide

@@ -1,0 +1,10 @@
+---
+name: aide
+
+dependencies:
+- pcre
+- mhash
+- zlib
+
+files:
+- aide-0.16.2.tar.gz

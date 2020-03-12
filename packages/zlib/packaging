@@ -1,0 +1,9 @@
+set -e
+
+tar xvzf zlib-1.2.11.tar.gz
+
+pushd zlib-1.2.11
+	./configure --prefix=${BOSH_INSTALL_TARGET}
+	make
+	make install
+popd

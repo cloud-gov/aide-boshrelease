@@ -1,0 +1,34 @@
+---
+name: aide
+
+releases:
+- name: aide
+  version: latest
+
+stemcells:
+- alias: default
+  os: ubuntu-xenial
+  version: latest
+
+update:
+  canaries: 1
+  max_in_flight: 1
+  canary_watch_time: 5000-60000
+  update_watch_time: 5000-60000
+
+instance_groups:
+- name: aide
+  azs: [z1, z2, z3]
+  instances: 1
+  jobs:
+  - name: aide
+    release: aide
+    properties:
+      aide_rules: |
+        /var/vcap/data R
+  vm_type: default
+  stemcell: default
+  persistent_disk: 10240
+  networks:
+  - name: default
+
