@@ -1,4 +1,4 @@
 ---
-name: aide
+final_name: aide
 blobstore:
   provider: s3
