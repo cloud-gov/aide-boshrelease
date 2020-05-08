@@ -1,6 +1,5 @@
 ---
 name: aide
 blobstore:
-  provider: local
-  options:
-    blobstore_path: /tmp/aide
+  provider: s3
+final_name: aide
