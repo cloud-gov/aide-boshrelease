@@ -1,0 +1,39 @@
+name: aide
+version: "1"
+commit_hash: 30ec454
+uncommitted_changes: false
+jobs:
+- name: aide
+  version: 342c80d661dc66d28c81ef65c7e286226a731a0044f8b41ce05d5d04545d7895
+  fingerprint: 342c80d661dc66d28c81ef65c7e286226a731a0044f8b41ce05d5d04545d7895
+  sha1: sha256:c9e2fd5babb876eeaad2d2be033e02a3c06d9071e000a604101fc4d35ffdd342
+  packages:
+  - aide
+packages:
+- name: aide
+  version: 176d5359247f92f9b743aa0f6e4fa2d3389466405f0a1bcb849e6c40b259aa3e
+  fingerprint: 176d5359247f92f9b743aa0f6e4fa2d3389466405f0a1bcb849e6c40b259aa3e
+  sha1: sha256:82414c81a7e8ef1015368ea7c175535ced9193b96cb57bdc26b883f833f2c3d4
+  dependencies:
+  - pcre
+  - mhash
+  - zlib
+- name: mhash
+  version: 3ab5c164ccf22a7363c625f86af83ee787ef2288001a342a3f62df153f2aa1df
+  fingerprint: 3ab5c164ccf22a7363c625f86af83ee787ef2288001a342a3f62df153f2aa1df
+  sha1: sha256:35f07eeeb4d9630090c5f08cf3d96ccaa752793bac07493a1c0445f0f199e368
+  dependencies: []
+- name: pcre
+  version: 8478be5d350aff394abd0cfb3e92be76f55bbba2879736aa65101c450cf69b48
+  fingerprint: 8478be5d350aff394abd0cfb3e92be76f55bbba2879736aa65101c450cf69b48
+  sha1: sha256:02f9aebab8d711d3efaa3e059aada249882914e9df3172db3dbc7d0431dfd217
+  dependencies: []
+- name: zlib
+  version: 034aac652533314843447aee62e0bf568f03385d17b9172689a9ebef0453e486
+  fingerprint: 034aac652533314843447aee62e0bf568f03385d17b9172689a9ebef0453e486
+  sha1: sha256:1fa0816cd82a29e90497684cf86cc390c1cd3aec5a38d07f48495d44ce2e018c
+  dependencies: []
+license:
+  version: f75947d1fa1c23f3d9422fbc0b0a4b32099714e52340c3abc7878000e6b34133
+  fingerprint: f75947d1fa1c23f3d9422fbc0b0a4b32099714e52340c3abc7878000e6b34133
+  sha1: sha256:d0fa83d1c92cec7bff0998038fb520c3549ae0165651ba9840e48e237bb9aeb5
