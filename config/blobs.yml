@@ -11,6 +11,6 @@ pcre-8.44.tar.gz:
   object_id: b9c2bb18-3570-4682-5b3e-fa74dfc94d2e
   sha: sha256:aecafd4af3bd0f3935721af77b889d9024b2e01d96b58471bd91a3063fb47728
 zlib-1.2.11.tar.gz:
-  size: 644492
-  object_id: da090fe4-d5b8-4e83-77d3-c761ec0dfa2c
-  sha: sha256:629380c90a77b964d896ed37163f5c3a34f6e6d897311f1df2a7016355c45eff
+  size: 607698
+  object_id: 17a3d0f0-0309-4632-5490-76fcef28f016
+  sha: sha256:c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1
