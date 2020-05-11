@@ -1,0 +1,3 @@
+check file aide-report-ran with path /var/vcap/data/aide/report-ran
+  if timestamp > 2 hours then alert
+  group vcap
