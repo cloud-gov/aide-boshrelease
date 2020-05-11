@@ -15,8 +15,17 @@ logger -t aide.report -f report.txt
 # report has lines like:
 #           Added entries:     74
 added=$(grep 'Added entries:' report.txt | awk '{ print $3 }')
+if [[ -z "${added}" ]]; then
+    added=0
+fi
 removed=$(grep 'Removed entries:' report.txt | awk '{ print $3 }')
+if [[ -z "${removed}" ]]; then
+    removed=0
+fi
 changed=$(grep 'Changed entries:' report.txt | awk '{ print $3 }')
+if [[ -z "${changed}" ]]; then
+    changed=0
+fi
 
 echo 'aide_violation_count {action="added"}' ${added} > aide.prom
 echo 'aide_violation_count {action="removed"}' ${removed} >> aide.prom
