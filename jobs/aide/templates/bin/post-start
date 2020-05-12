@@ -6,5 +6,5 @@ aide --update
 mv /var/vcap/store/aide/conf/aide.db.new /var/vcap/store/aide/conf/aide.db
 
 cp /var/vcap/jobs/aide/bin/run-report.sh /etc/cron.hourly/run-report.sh
-chmod 0700 /var/vcap/data/aide/report-ran.sh
-chown root: /var/vcap/data/aide/report-ran.sh
+chmod 0700 /etc/cron.hourly/report-ran.sh
+chown root: /etc/cron.hourly/report-ran.sh
