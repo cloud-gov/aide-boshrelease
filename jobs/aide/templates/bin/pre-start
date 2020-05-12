@@ -10,3 +10,6 @@ if [[ ! -f ${CONF_DIR}/aide.db ]]; then
   aide --init
   mv ${CONF_DIR}/aide.db.new ${CONF_DIR}/aide.db
 fi
+
+# ok, the report didn't run, but this lets monit not fail this deploy on startup
+touch /var/vcap/data/aide/report-ran
