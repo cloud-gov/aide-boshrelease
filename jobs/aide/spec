@@ -13,3 +13,4 @@ packages:
 properties:
   aide_rules:
     description: Additional rules for AIDE to apply
+    default: ""
