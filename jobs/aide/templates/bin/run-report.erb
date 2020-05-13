@@ -4,8 +4,13 @@ set -x
 
 JOB_DIR=/var/vcap/jobs/aide
 PACKAGE_DIR=/var/vcap/packages/aide
+LOGFILE=/var/vcap/sys/log/aide/report.log
 
 $PACKAGE_DIR/bin/aide --check > report.txt
+
+date >> ${LOGFILE}
+cat report.txt >> ${LOGFILE}
+echo "=============================================" >> ${LOGFILE}
 
 # aide exits nonzero when it finds a modification, so wait until here to set -e
 set -e
