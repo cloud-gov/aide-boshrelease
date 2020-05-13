@@ -5,7 +5,7 @@ templates:
   conf/aide.conf.erb: conf/aide.conf
   bin/pre-start: bin/pre-start
   bin/post-start: bin/post-start
-  bin/run-report.sh.erb: bin/run-report.sh
+  bin/run-report.erb: bin/run-report
 
 packages:
 - aide
