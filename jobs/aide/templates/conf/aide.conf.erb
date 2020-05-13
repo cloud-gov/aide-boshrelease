@@ -24,7 +24,7 @@
 #tiger:  tiger checksum
 #haval:  haval checksum
 #crc32:  crc32 checksum
-#R:      p+ftupe+i+l+n+u+g+s+m+c+md5
+#R:      p+ftype+i+l+n+u+g+s+m+c+md5
 #L:      p+ftype+i+l+n+u+g
 #E:      Empty group
 #>:      Growing file p+ftype+l+u+g+i+n+S
@@ -43,6 +43,7 @@
 TEMPFILE = p+ftype+u+g
 # this is L from above, but without inode checks
 LNOI = p+ftype+l+n+u+g
+RNOI = p+ftype+l+n+u+g+s+m+c+md5
 
 # don't mess with AIDE
 /var/vcap/packages/aide R
@@ -58,13 +59,13 @@ LNOI = p+ftype+l+n+u+g
 
 # etc stuff
 # Bosh messes with all these, really
-/etc p+ftype+i+l+n+u+g+s+md5
-/etc/hosts      LNOI
-/etc/g?shadow-? LNOI
-/etc/group-?    LNOI
-/etc/passwd-?   LNOI
-/etc/subgid-?   LNOI
-/etc/subuid-?   LNOI
+/etc            RNOI
+#/etc/hosts      LNOI
+#/etc/g?shadow-? LNOI
+#/etc/group-?    LNOI
+#/etc/passwd-?   LNOI
+#/etc/subgid-?   LNOI
+#/etc/subuid-?   LNOI
 
 # bosh-specific
 /var/vcap/packages R
