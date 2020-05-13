@@ -8,14 +8,12 @@ LOGFILE=/var/vcap/sys/log/aide/report.log
 
 $PACKAGE_DIR/bin/aide --check > report.txt
 
-date >> ${LOGFILE}
-cat report.txt >> ${LOGFILE}
-echo "=============================================" >> ${LOGFILE}
-
 # aide exits nonzero when it finds a modification, so wait until here to set -e
 set -e
 
-logger -t aide.report -f report.txt
+date >> ${LOGFILE}
+cat report.txt >> ${LOGFILE}
+echo "=============================================" >> ${LOGFILE}
 
 # report has lines like:
 #           Added entries:     74
