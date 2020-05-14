@@ -43,7 +43,7 @@
 TEMPFILE = p+ftype+u+g
 # this is L from above, but without inode checks
 LNOI = p+ftype+l+n+u+g
-RNOI = p+ftype+l+n+u+g+s+m+c+md5
+RNOIMC = p+ftype+l+n+u+g+s+md5
 
 # don't mess with AIDE
 /var/vcap/packages/aide R
@@ -59,7 +59,7 @@ RNOI = p+ftype+l+n+u+g+s+m+c+md5
 
 # etc stuff
 # Bosh messes with all these, really
-/etc            RNOI
+/etc            RNOIMC
 #/etc/hosts      LNOI
 #/etc/g?shadow-? LNOI
 #/etc/group-?    LNOI
