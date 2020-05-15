@@ -4,7 +4,7 @@ name: aide
 templates:
   conf/aide.conf.erb: conf/aide.conf
   bin/pre-start: bin/pre-start
-  bin/post-start: bin/post-start
+  bin/post-deploy: bin/post-deploy
   bin/run-report.erb: bin/run-report
 
 packages:
