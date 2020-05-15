@@ -16,6 +16,8 @@
 #c:      ctime
 #S:      check for growing size
 #I:      ignore changed filename
+#ANF:    allow new files
+#ARF:    allow removed files
 #md5:    md5 checksum
 #sha1:   sha1 checksum
 #sha256: sha256 checksum
@@ -40,7 +42,7 @@
 
 # You can also create custom rules like:
 # (most of these borrowed from Tripwire)
-TEMPFILE = p+ftype+u+g
+TEMPFILE = p+ftype+u+g+ANF+ARF
 # this is L from above, but without inode checks
 LNOI = p+ftype+l+n+u+g
 RNOIMC = p+ftype+l+n+u+g+s+md5
@@ -51,7 +53,6 @@ RNOIMC = p+ftype+l+n+u+g+s+md5
 
 
 # stuff that doesn't matter
-!/tmp
 !/proc
 !/var/log/.*
 !/var/spool/.*
@@ -60,6 +61,7 @@ RNOIMC = p+ftype+l+n+u+g+s+md5
 # etc stuff
 # Bosh messes with all these, really
 /etc            RNOIMC
+/etc/hosts$     p+ftype+u+g
 #/etc/hosts      LNOI
 #/etc/g?shadow-? LNOI
 #/etc/group-?    LNOI
