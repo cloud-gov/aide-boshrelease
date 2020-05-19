@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PATH=/var/vcap/packages/aide/bin:$PATH
+
 LOCKFILE="/var/vcap/sys/run/aide/update.lock"
 LOCKFD=99
 
