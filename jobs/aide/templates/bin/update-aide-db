@@ -1,0 +1,26 @@
+#!/bin/bash
+
+PATH=/var/vcap/packages/aide/bin:$PATH
+
+LOCKFILE="/var/vcap/sys/run/aide/update.lock"
+LOCKFD=99
+
+release_lock() {
+  flock -u ${LOCKFD}
+  flock -xn ${LOCKFD} && rm -f ${LOCKFILE}
+}
+
+initialize_lock() {
+  exec ${LOCKFD}<>${LOCKFILE}
+  trap release_lock EXIT
+}
+
+update_aide() {
+  aide --update
+  mv /var/vcap/store/aide/conf/aide.db.new /var/vcap/store/aide/conf/aide.db
+}
+
+initialize_lock
+
+flock -x -w 120 ${LOCKFD} -c update_aide
+

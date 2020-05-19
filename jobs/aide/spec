@@ -6,6 +6,7 @@ templates:
   bin/pre-start: bin/pre-start
   bin/post-deploy: bin/post-deploy
   bin/run-report.erb: bin/run-report
+  bin/update-aide-db: bin/update-aide-db
 
 packages:
 - aide
