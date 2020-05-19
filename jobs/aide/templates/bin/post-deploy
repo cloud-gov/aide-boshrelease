@@ -2,9 +2,10 @@
 
 PATH=/var/vcap/packages/aide/bin:$PATH
 
-aide --update
-mv /var/vcap/store/aide/conf/aide.db.new /var/vcap/store/aide/conf/aide.db
-
 cp /var/vcap/jobs/aide/bin/run-report /etc/cron.hourly/run-report
 chmod 0700 /etc/cron.hourly/run-report
 chown root: /etc/cron.hourly/run-report
+
+aide --update
+mv /var/vcap/store/aide/conf/aide.db.new /var/vcap/store/aide/conf/aide.db
+
