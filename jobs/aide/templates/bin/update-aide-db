@@ -11,7 +11,7 @@ release_lock() {
 }
 
 initialize_lock() {
-  exec ${LOCKFD}<>${LOCKFILE}
+  eval "exec ${LOCKFD}<>${LOCKFILE}"
   trap release_lock EXIT
 }
 
@@ -22,5 +22,5 @@ update_aide() {
 
 initialize_lock
 
-flock -x -w 120 ${LOCKFD} -c update_aide
+flock -x -w 120 ${LOCKFD} && update_aide
 
