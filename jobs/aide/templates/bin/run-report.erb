@@ -6,7 +6,7 @@ JOB_DIR=/var/vcap/jobs/aide
 PACKAGE_DIR=/var/vcap/packages/aide
 LOGFILE=/var/vcap/sys/log/aide/report.log
 
-pushd "$(dirname "${BASH_SOURCE[0]}")"
+pushd "${JOB_DIR}/bin"
   source lock-functions
 popd
 
