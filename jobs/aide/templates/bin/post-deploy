@@ -5,3 +5,4 @@ chmod 0700 /etc/cron.hourly/run-report
 chown root: /etc/cron.hourly/run-report
 
 /var/vcap/jobs/aide/bin/update-aide-db
+/var/vcap/jobs/aide/bin/run-report
