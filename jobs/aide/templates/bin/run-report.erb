@@ -6,9 +6,7 @@ JOB_DIR=/var/vcap/jobs/aide
 PACKAGE_DIR=/var/vcap/packages/aide
 LOGFILE=/var/vcap/sys/log/aide/report.log
 
-pushd "${JOB_DIR}/bin"
-  source lock-functions
-popd
+source ${JOB_DIR}/bin/lock-functions
 
 initialize_lock
 
