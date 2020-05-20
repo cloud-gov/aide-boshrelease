@@ -6,18 +6,11 @@ JOB_DIR=/var/vcap/jobs/aide
 PACKAGE_DIR=/var/vcap/packages/aide
 LOGFILE=/var/vcap/sys/log/aide/report.log
 
-LOCKFILE="/var/vcap/sys/run/aide/update.lock"
-LOCKFD=99
+pushd "$(dirname "${BASH_SOURCE[0]}")"
+  source lock-functions
+popd
 
-release_lock() {
-  flock -u ${LOCKFD}
-  flock -xn ${LOCKFD} && rm -f ${LOCKFILE}
-}
-
-initialize_lock() {
-  eval "exec ${LOCKFD}<>${LOCKFILE}"
-  trap release_lock EXIT
-}
+initialize_lock
 
 flock -x -w 120 ${LOCKFD} -c $PACKAGE_DIR/bin/aide --check > report.txt
 

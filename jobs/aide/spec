@@ -7,6 +7,7 @@ templates:
   bin/post-deploy: bin/post-deploy
   bin/run-report.erb: bin/run-report
   bin/update-aide-db: bin/update-aide-db
+  bin/lock-functions: bin/lock-functions
 
 packages:
 - aide
