@@ -59,15 +59,7 @@ RNOIMC = p+ftype+l+n+u+g+s+md5
 
 
 # etc stuff
-# Bosh messes with all these, really
-/etc            RNOIMC
-/etc/hosts$     p+ftype+u+g
-#/etc/hosts      LNOI
-#/etc/g?shadow-? LNOI
-#/etc/group-?    LNOI
-#/etc/passwd-?   LNOI
-#/etc/subgid-?   LNOI
-#/etc/subuid-?   LNOI
+/etc            R
 
 # bosh-specific
 /var/vcap/packages R
@@ -76,24 +68,7 @@ RNOIMC = p+ftype+l+n+u+g+s+md5
 
 
 # binaries and libraries
-/usr/local/bin           R
-/usr/local/doc           R
-/usr/local/etc           R
-/usr/local/games         R
-/usr/local/include       R
-/usr/local/lib           R
-/usr/local/libexec       R
-/usr/local/man           R
-/usr/local/sbin          R
-/usr/local/share         R
-/usr/local/src           R
-/usr/local/sysinfo       R
-/usr/local               R
-/usr/bin                 R
-/usr/lib                 R
-/usr/libexec             R
-/usr/sbin                R
-/usr/X11R6/lib           R
+/usr                     R
 /sbin                    R
 /lib                     R
 /bin                     R
