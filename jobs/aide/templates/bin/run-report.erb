@@ -10,7 +10,7 @@ source ${JOB_DIR}/bin/lock-functions
 
 initialize_lock
 
-flock -x -w 120 ${LOCKFD} -c $PACKAGE_DIR/bin/aide --check > report.txt
+flock -x -w 120 ${LOCKFD} -c "$PACKAGE_DIR/bin/aide --check" > report.txt
 
 # aide exits nonzero when it finds a modification, so wait until here to set -e
 set -e
