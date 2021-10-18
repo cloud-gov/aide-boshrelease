@@ -1,6 +1,8 @@
 set -e
 
-tar xvzf aide-0.16.2.tar.gz
+AIDE_VER=$(basename aide-*.tar.gz .tar.gz)
+echo "Found ${AIDE_VER}"
+tar xvzf aide-*.tar.gz
 
 base_dir=$(dirname ${BOSH_INSTALL_TARGET})
 
@@ -9,14 +11,14 @@ for dep in pcre zlib mhash; do
 	export CPPFLAGS="-I${base_dir}/${dep}/include ${CPPFLAGS}"
 done
 
-pushd aide-0.16.2
+pushd ${AIDE_VER}
 	./configure \
 		--prefix=${BOSH_INSTALL_TARGET} \
 		--sysconfdir=/var/vcap/store/aide/conf\
 		--localstatedir=/var/vcap/store/aide/state \
 		--runstatedir=/var/vcap/sys/run/aide \
 		--with-config-file=/var/vcap/jobs/aide/conf/aide.conf
-	
+
 	make
 	make install
 popd
