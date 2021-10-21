@@ -11,11 +11,18 @@ This release is made with the following assumptions:
 
 The release will schedule AIDE to check and report hourly, by dropping a file into `/etc/cron.hourly`.
 
-Extra rules can be applied via the `aide_rules` property, which should be just raw text rules:
+Extra rules can be applied via the `add_aide_rules` property, which should be just raw text rules:
 
 ```yaml
-aide_rules: |
+add_aide_rules: |
   /path/to/tacos R # don't mess with my tacos
+  !/something/i/do/not/care/about
+
+```
+Extra ignore rules can be applied via the `ignore_aide_rules` property, which should be just raw text rules - if your ignoring a sub file/directory either in a default rule or under an above `add_aide_rule` place your ignore syntax here:
+
+```yaml
+ignore_aide_rules: |
   !/something/i/do/not/care/about
 
 ```
@@ -25,5 +32,3 @@ aide_rules: |
 Pre-start scripts ensure the AIDE db has been initialized.
 Post-start scripts update the database, accepting all changes.
 run-report.sh runs aide --check and exports the results to prometheus
-
-
