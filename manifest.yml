@@ -24,11 +24,12 @@ instance_groups:
   - name: aide
     release: aide
     properties:
-      aide_rules: |
+      prepend_rules: |
+        !/var/vcap/data/stuff
+      append_rules: |
         /var/vcap/data R
   vm_type: default
   stemcell: default
   persistent_disk: 10240
   networks:
   - name: default
-

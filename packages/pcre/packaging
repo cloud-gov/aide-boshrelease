@@ -2,7 +2,9 @@ set -e
 
 tar -xvzf pcre-8.44.tar.gz
 pushd pcre-8.44
-	./configure --prefix=${BOSH_INSTALL_TARGET}
+	./configure \
+	  --prefix=${BOSH_INSTALL_TARGET} \
+		--enable-utf
 
 	make
 	make install

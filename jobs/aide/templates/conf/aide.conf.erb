@@ -47,6 +47,9 @@ TEMPFILE = p+ftype+u+g+ANF+ARF
 LNOI = p+ftype+l+n+u+g
 RNOIMC = p+ftype+l+n+u+g+s+md5
 
+# ignore extras from config - need to come before adds to be honored
+<%= p('prepend_rules') %>
+
 # don't mess with AIDE
 /var/vcap/packages/aide R
 /var/vcap/jobs/aide R
@@ -62,7 +65,7 @@ RNOIMC = p+ftype+l+n+u+g+s+md5
 /etc            R
 
 # bosh-specific
-/var/vcap/packages R
+/var/vcap/data/packages R
 !/var/vcap/sys/log/.*
 /var/vcap/sys/run TEMPFILE
 
@@ -80,5 +83,4 @@ RNOIMC = p+ftype+l+n+u+g+s+md5
 /tmp                     TEMPFILE
 
 # extras from config
-<%= p('aide_rules') %>
-
+<%= p('append_rules') %>
