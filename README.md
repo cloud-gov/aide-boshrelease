@@ -18,7 +18,7 @@ add_aide_rules: |
   /path/to/tacos R # don't mess with my tacos
 
 ```
-Extra ignore rules can be applied via the `ignore_aide_rules` property, which should be just raw text rules - if your ignoring a sub file/directory either in a default rule or under an above `add_aide_rule` place your ignore syntax here:
+Extra ignore rules can be applied via the `ignore_aide_rules` property, which should be just raw text rules - if you're ignoring a sub file/directory either in a default rule or under an above `add_aide_rule` place your ignore syntax here:
 
 ```yaml
 ignore_aide_rules: |
