@@ -24,9 +24,9 @@ instance_groups:
   - name: aide
     release: aide
     properties:
-      ignore_aide_rules: |
+      prepend_rules: |
         !/var/vcap/data/stuff
-      add_aide_rules: |
+      append_rules: |
         /var/vcap/data R
   vm_type: default
   stemcell: default

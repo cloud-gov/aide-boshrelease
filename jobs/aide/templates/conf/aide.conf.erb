@@ -48,7 +48,7 @@ LNOI = p+ftype+l+n+u+g
 RNOIMC = p+ftype+l+n+u+g+s+md5
 
 # ignore extras from config - need to come before adds to be honored
-<%= p('ignore_aide_rules') %>
+<%= p('prepend_rules') %>
 
 # don't mess with AIDE
 /var/vcap/packages/aide R
@@ -83,4 +83,4 @@ RNOIMC = p+ftype+l+n+u+g+s+md5
 /tmp                     TEMPFILE
 
 # extras from config
-<%= p('add_aide_rules') %>
+<%= p('append_rules') %>

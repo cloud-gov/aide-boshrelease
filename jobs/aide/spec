@@ -13,9 +13,9 @@ packages:
 - aide
 
 properties:
-  add_aide_rules:
+  append_rules:
     description: Additional add rules for AIDE to apply - will be placed at the bottom of aide.conf
     default: ""
-  ignore_aide_rules:
+  prepend_rules:
     description: Additional ignore rules for AIDE to apply - will be placed at the top of aide.conf before defaults and custom adds
     default: ""

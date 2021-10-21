@@ -11,17 +11,17 @@ This release is made with the following assumptions:
 
 The release will schedule AIDE to check and report hourly, by dropping a file into `/etc/cron.hourly`.
 
-Extra rules can be applied via the `add_aide_rules` property, which should be just raw text rules:
+Extra rules can be applied via the `append_rules` property, which should be just raw text rules:
 
 ```yaml
-add_aide_rules: |
+append_rules: |
   /path/to/tacos R # don't mess with my tacos
 
 ```
-Extra ignore rules can be applied via the `ignore_aide_rules` property, which should be just raw text rules - if you're ignoring a sub file/directory either in a default rule or under an above `add_aide_rule` place your ignore syntax here:
+Extra ignore rules can be applied via the `prepend_rules` property, which should be just raw text rules - if you're ignoring a sub file/directory either in a default rule or under an above `append_rules` place your ignore syntax here:
 
 ```yaml
-ignore_aide_rules: |
+prepend_rules: |
   !/something/i/do/not/care/about
 
 ```
