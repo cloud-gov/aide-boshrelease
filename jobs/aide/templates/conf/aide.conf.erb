@@ -62,7 +62,11 @@ RNOIMC = p+ftype+l+n+u+g+s+md5
 
 
 # etc stuff
-/etc            R
+/etc                       RNOIMC
+# bosh messes with hosts all the time
+/etc/hosts                 L
+# this is PIDs and statuses and such
+/etc/sv/agent/supervise    TEMPFILE
 
 # bosh-specific
 /var/vcap/data/packages R
