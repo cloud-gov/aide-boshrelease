@@ -73,6 +73,8 @@ RNOIMC = p+ftype+l+n+u+g+s+md5
 !/var/vcap/sys/log/.*
 /var/vcap/sys/run TEMPFILE
 
+# Ignore aide's own lock file which changes file permissions when run
+!/var/vcap/sys/run/aide/update.lock$
 
 # binaries and libraries
 /usr                     R
