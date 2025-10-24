@@ -29,9 +29,114 @@ removed=$(grep 'Removed entries:' report.txt | awk '{ print $3 }')
 if [[ -z "${removed}" ]]; then
     removed=0
 fi
-changed=$(grep 'Changed entries:' report.txt | awk '{ print $3 }')
-if [[ -z "${changed}" ]]; then
+
+# New logic for calculating changed entries
+# Initialize the changed variable
+changed=0
+
+# Define the allowed files
+allowed_files=(
+    "/etc/group-"
+    "/etc/gshadow-"
+    "/etc/passwd-"
+    "/etc/shadow-"
+    "/etc/subgid-"
+    "/etc/subuid-"
+    "/etc/group"
+    "/etc/gshadow"
+    "/etc/passwd"
+    "/etc/shadow"
+    "/etc/subgid"
+    "/etc/subuid"
+)
+
+# Extract the number of changed entries
+changed_entries=$(grep "Changed entries:" report.txt | grep -v "^Changed entries:$" | awk '{print $3}')
+
+# Check if changed_entries is empty or not a number
+if [ -z "$changed_entries" ] || ! [[ "$changed_entries" =~ ^[0-9]+$ ]]; then
+    # If we can't extract a valid number, default to 0
     changed=0
+else
+    # If changed entries is 0, set changed=0
+    if [ "$changed_entries" -eq 0 ]; then
+        changed=0
+    else
+        # Extract the list of changed files
+        changed_files=$(awk '
+            /^Changed entries:$/ { in_section = 1; next }
+            in_section && /^f > / { 
+                # Extract filename after the colon and space
+                idx = index($0, ": ")
+                if (idx > 0) {
+                    filename = substr($0, idx + 2)
+                    # Remove any trailing whitespace or special characters
+                    gsub(/[[:space:]]+$/, "", filename)
+                    print filename
+                }
+            }
+            in_section && /^---/ && prev_line ~ /^$/ { exit }
+            { prev_line = $0 }
+        ' report.txt)
+
+        # Check if any changed files are outside the allowed list
+        files_outside_list=false
+        while IFS= read -r file; do
+            if [ -n "$file" ]; then
+                is_allowed=false
+                for allowed in "${allowed_files[@]}"; do
+                    if [ "$file" = "$allowed" ]; then
+                        is_allowed=true
+                        break
+                    fi
+                done
+                if [ "$is_allowed" = false ]; then
+                    files_outside_list=true
+                    break
+                fi
+            fi
+        done <<< "$changed_files"
+
+        # If there are files outside the allowed list, set changed to the number of changed entries
+        if [ "$files_outside_list" = true ]; then
+            changed=$changed_entries
+        else
+            # All files are in the allowed list, now check diffs for bosh_ differences
+            # Group the files into pairs (base and dash versions)
+            base_files=(
+                "/etc/group"
+                "/etc/gshadow"
+                "/etc/passwd"
+                "/etc/shadow"
+                "/etc/subgid"
+                "/etc/subuid"
+            )
+            
+            for base_file in "${base_files[@]}"; do
+                dash_file="${base_file}-"
+                
+                # Check if both files exist in the changed files list
+                if echo "$changed_files" | grep -q "^${base_file}$" || echo "$changed_files" | grep -q "^${dash_file}$"; then
+                    # Check if both files exist on the system
+                    if [ -f "$base_file" ] && [ -f "$dash_file" ]; then
+                        # Perform diff and check for non-bosh_ differences
+                        diff_output=$(diff "$dash_file" "$base_file" 2>/dev/null)
+                        
+                        # Check if there are any differences that don't contain "bosh_"
+                        if [ -n "$diff_output" ]; then
+                            non_bosh_diff=$(echo "$diff_output" | grep -v "bosh_" | grep -E "^[<>]")
+                            if [ -n "$non_bosh_diff" ]; then
+                                ((changed++))
+                            fi
+                        fi
+                    else
+                        # If files don't exist for diff, count it as a change
+                        ((changed++))
+                    fi
+                fi
+            done
+        fi
+    fi
 fi
 
 echo 'aide_violation_count {action="added"}' ${added} > aide.prom
