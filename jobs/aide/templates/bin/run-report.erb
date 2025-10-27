@@ -11,7 +11,8 @@ source ${JOB_DIR}/bin/lock-functions
 initialize_lock
 
 flock -x -w 120 ${LOCKFD} -c "$PACKAGE_DIR/bin/aide --check" > report.txt
-
+# aide exits nonzero when it finds a modification, so wait until here to set -e
+set -e
 date >> ${LOGFILE}
 cat report.txt >> ${LOGFILE}
 echo "=============================================" >> ${LOGFILE}
@@ -126,7 +127,8 @@ else
                     # Check if both files exist on the system
                     if [ -f "$base_file" ] && [ -f "$dash_file" ]; then
                         # Perform diff and check for non-bosh_ differences
-                        diff_output=$(diff "$dash_file" "$base_file" 2>/dev/null)
+                        set +e
+                        diff_output=$(diff "$dash_file" "$base_file" 2>/dev/null || true)
                         # Check if there are any differences that don't contain "bosh_"
                         if [ -n "$diff_output" ]; then
                             non_bosh_diff=$(echo "$diff_output" | grep -v "bosh_" | grep -E "^[<>]")
@@ -137,6 +139,7 @@ else
                                 echo "diff had a bosh_ reference in $base_file"
                             fi
                         fi
+                        set -e
                     else
                         # If files don't exist for diff, count it as a change
                         echo "Warning: Cannot diff $base_file and $dash_file - one or both files missing"
