@@ -12,9 +12,6 @@ initialize_lock
 
 flock -x -w 120 ${LOCKFD} -c "$PACKAGE_DIR/bin/aide --check" > report.txt
 
-# aide exits nonzero when it finds a modification, so wait until here to set -e
-set -e
-
 date >> ${LOGFILE}
 cat report.txt >> ${LOGFILE}
 echo "=============================================" >> ${LOGFILE}
@@ -52,10 +49,12 @@ allowed_files=(
 
 # Extract the number of changed entries
 changed_entries=$(grep "Changed entries:" report.txt | grep -v "^Changed entries:$" | awk '{print $3}')
+echo "Changed entries found by aide --check: ${changed_entries}"
 
 # Check if changed_entries is empty or not a number
 if [ -z "$changed_entries" ] || ! [[ "$changed_entries" =~ ^[0-9]+$ ]]; then
     # If we can't extract a valid number, default to 0
+    echo "Error: Could not extract valid number of changed entries"
     changed=0
 else
     # If changed entries is 0, set changed=0
@@ -78,6 +77,9 @@ else
             in_section && /^---/ && prev_line ~ /^$/ { exit }
             { prev_line = $0 }
         ' report.txt)
+        # Print the changed files (one per line for visibility)
+        echo "Changed files:"
+        echo "$changed_files"
 
         # Check if any changed files are outside the allowed list
         files_outside_list=false
@@ -91,6 +93,7 @@ else
                     fi
                 done
                 if [ "$is_allowed" = false ]; then
+                    echo "File outside allowed list: $file"
                     files_outside_list=true
                     break
                 fi
@@ -99,8 +102,10 @@ else
 
         # If there are files outside the allowed list, set changed to the number of changed entries
         if [ "$files_outside_list" = true ]; then
+            echo "There were changes outside of the allowed list..."
             changed=$changed_entries
         else
+             echo "All file changes are in the allowed list, checking diffs..."
             # All files are in the allowed list, now check diffs for bosh_ differences
             # Group the files into pairs (base and dash versions)
             base_files=(
@@ -117,20 +122,24 @@ else
                 
                 # Check if both files exist in the changed files list
                 if echo "$changed_files" | grep -q "^${base_file}$" || echo "$changed_files" | grep -q "^${dash_file}$"; then
+                    echo "Checking diff for $base_file and $dash_file"
                     # Check if both files exist on the system
                     if [ -f "$base_file" ] && [ -f "$dash_file" ]; then
                         # Perform diff and check for non-bosh_ differences
                         diff_output=$(diff "$dash_file" "$base_file" 2>/dev/null)
-                        
                         # Check if there are any differences that don't contain "bosh_"
                         if [ -n "$diff_output" ]; then
                             non_bosh_diff=$(echo "$diff_output" | grep -v "bosh_" | grep -E "^[<>]")
                             if [ -n "$non_bosh_diff" ]; then
+                                echo "Found non-bosh_ differences in $base_file"
                                 ((changed++))
+                            else
+                                echo "diff had a bosh_ reference in $base_file"
                             fi
                         fi
                     else
                         # If files don't exist for diff, count it as a change
+                        echo "Warning: Cannot diff $base_file and $dash_file - one or both files missing"
                         ((changed++))
                     fi
                 fi
