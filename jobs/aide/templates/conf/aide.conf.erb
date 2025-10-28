@@ -46,6 +46,7 @@ TEMPFILE = p+ftype+u+g+ANF+ARF
 # this is L from above, but without inode checks
 LNOI = p+ftype+l+n+u+g
 RNOIMC = p+ftype+l+n+u+g+s+md5
+RNOC = p+ftype+i+l+n+u+g+s+m+md5
 
 # ignore extras from config - need to come before adds to be honored
 <%= p('prepend_rules') %>
@@ -69,7 +70,7 @@ RNOIMC = p+ftype+l+n+u+g+s+md5
 /etc/sv/agent/supervise    TEMPFILE
 
 # bosh-specific
-/var/vcap/data/packages R
+/var/vcap/data/packages RNOC
 !/var/vcap/sys/log/.*
 /var/vcap/sys/run TEMPFILE
 
