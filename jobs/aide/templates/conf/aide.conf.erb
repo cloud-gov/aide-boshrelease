@@ -70,7 +70,8 @@ RNOC = p+ftype+i+l+n+u+g+s+m+md5
 /etc/sv/agent/supervise    TEMPFILE
 
 # bosh-specific
-/var/vcap/data/packages RNOC
+/var/vcap/data/packages$ RNOC
+/var/vcap/data/packages R
 !/var/vcap/sys/log/.*
 /var/vcap/sys/run TEMPFILE
 
