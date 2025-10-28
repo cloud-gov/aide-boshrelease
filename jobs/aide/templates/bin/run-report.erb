@@ -129,15 +129,44 @@ else
                         # Perform diff and check for non-bosh_ differences
                         set +e
                         diff_output=$(diff "$dash_file" "$base_file" 2>/dev/null || true)
-                        # Check if there are any differences that don't contain "bosh_"
+                        
                         if [ -n "$diff_output" ]; then
-                            non_bosh_diff=$(echo "$diff_output" | grep -v "bosh_" | grep -E "^[<>]")
-                            if [ -n "$non_bosh_diff" ]; then
-                                echo "Found non-bosh_ differences in $base_file"
-                                ((changed++))
-                            else
-                                echo "diff had a bosh_ reference in $base_file"
+                            # Extract lines from dash_file (lines starting with <)
+                            dash_lines=$(echo "$diff_output" | grep "^<" | sed 's/^< //')
+                            # Extract lines from base_file (lines starting with >)
+                            base_lines=$(echo "$diff_output" | grep "^>" | sed 's/^> //')
+                            
+                            # Check if all dash_file lines contain bosh_
+                            all_dash_have_bosh=true
+                            if [ -n "$dash_lines" ]; then
+                                while IFS= read -r line; do
+                                    if ! echo "$line" | grep -q "bosh_"; then
+                                        all_dash_have_bosh=false
+                                        break
+                                    fi
+                                done <<< "$dash_lines"
                             fi
+                            
+                            # Check if all base_file lines contain bosh_
+                            all_base_have_bosh=true
+                            if [ -n "$base_lines" ]; then
+                                while IFS= read -r line; do
+                                    if ! echo "$line" | grep -q "bosh_"; then
+                                        all_base_have_bosh=false
+                                        break
+                                    fi
+                                done <<< "$base_lines"
+                            fi
+                            
+                            # If EITHER all dash lines OR all base lines contain bosh_, don't count as change
+                            if [ "$all_dash_have_bosh" = true ] || [ "$all_base_have_bosh" = true ]; then
+                                echo "All lines in at least one side contain bosh_ in $base_file - not counting as change"
+                            else
+                                echo "Found changes without bosh_ in both sides for $base_file"
+                                ((changed++))
+                            fi
+                        else
+                            echo "No differences found between $dash_file and $base_file"
                         fi
                         set -e
                     else
