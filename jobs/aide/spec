@@ -8,6 +8,7 @@ templates:
   bin/run-report.erb: bin/run-report
   bin/update-aide-db: bin/update-aide-db
   bin/lock-functions: bin/lock-functions
+  bin/calculate-changes: bin/calculate-changes
 
 packages:
 - aide

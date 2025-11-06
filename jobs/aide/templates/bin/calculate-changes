@@ -1,0 +1,202 @@
+#!/bin/bash
+
+calculate_changes() {
+    # Function parameters
+    local LOGFILE=$1
+    local REPORT_FILE=${2:-"report.txt"}  # Default to report.txt if not specified
+    local TEST_MODE=${3:-"false"}         # Test mode flag
+    local TEST_FILES_DIR=${4:-""}         # Directory containing test files
+    
+    # Initialize the changed variable
+    local changed=0
+    
+    # Define the allowed files
+    local allowed_files=(
+        "/etc/group-"
+        "/etc/gshadow-"
+        "/etc/passwd-"
+        "/etc/shadow-"
+        "/etc/subgid-"
+        "/etc/subuid-"
+        "/etc/group"
+        "/etc/gshadow"
+        "/etc/passwd"
+        "/etc/shadow"
+        "/etc/subgid"
+        "/etc/subuid"
+    )
+    
+    # If in test mode, override with test paths
+    if [ "$TEST_MODE" = "true" ] && [ -n "$TEST_FILES_DIR" ]; then
+        echo "TEST_MODE is true" >> ${LOGFILE}
+        allowed_files=(
+            "${TEST_FILES_DIR}/group-"
+            "${TEST_FILES_DIR}/gshadow-"
+            "${TEST_FILES_DIR}/passwd-"
+            "${TEST_FILES_DIR}/shadow-"
+            "${TEST_FILES_DIR}/subgid-"
+            "${TEST_FILES_DIR}/subuid-"
+            "${TEST_FILES_DIR}/group"
+            "${TEST_FILES_DIR}/gshadow"
+            "${TEST_FILES_DIR}/passwd"
+            "${TEST_FILES_DIR}/shadow"
+            "${TEST_FILES_DIR}/subgid"
+            "${TEST_FILES_DIR}/subuid"
+        )
+    fi
+    
+    # Extract the number of changed entries
+    local changed_entries=$(grep "Changed entries:" "$REPORT_FILE" | grep -v "^Changed entries:$" | awk '{print $3}')
+    echo "Calculating changes for Prometheus..." >> ${LOGFILE}
+    echo "Changed entries found by aide --check: ${changed_entries}" >> ${LOGFILE}
+    
+    # Check if changed_entries is empty or not a number
+    if [ -z "$changed_entries" ] || ! [[ "$changed_entries" =~ ^[0-9]+$ ]]; then
+        # If we can't extract a valid number, default to 0
+        echo "Error: Could not extract valid number of changed entries" >> ${LOGFILE}
+        changed=0
+    else
+        # If changed entries is 0, set changed=0
+        if [ "$changed_entries" -eq 0 ]; then
+            changed=0
+        else
+            # Extract the list of changed files
+            local changed_files=$(awk '
+                /^Changed entries:$/ { in_section = 1; next }
+                in_section && /^f > / { 
+                    # Extract filename after the colon and space
+                    idx = index($0, ": ")
+                    if (idx > 0) {
+                        filename = substr($0, idx + 2)
+                        # Remove any trailing whitespace or special characters
+                        gsub(/[[:space:]]+$/, "", filename)
+                        print filename
+                    }
+                }
+                in_section && /^---/ && prev_line ~ /^$/ { exit }
+                { prev_line = $0 }
+            ' "$REPORT_FILE")
+            
+            # Print the changed files (one per line for visibility)
+            echo "Changed files:" >> ${LOGFILE}
+            echo "$changed_files" >> ${LOGFILE}
+            
+            # Check if any changed files are outside the allowed list
+            local files_outside_list=false
+            while IFS= read -r file; do
+                if [ -n "$file" ]; then
+                    local is_allowed=false
+                    for allowed in "${allowed_files[@]}"; do
+                        if [ "$file" = "$allowed" ]; then
+                            is_allowed=true
+                            break
+                        fi
+                    done
+                    if [ "$is_allowed" = false ]; then
+                        echo "File outside allowed list: $file" >> ${LOGFILE}
+                        files_outside_list=true
+                        break
+                    fi
+                fi
+            done <<< "$changed_files"
+            
+            # If there are files outside the allowed list, set changed to the number of changed entries
+            if [ "$files_outside_list" = true ]; then
+                echo "There were changes outside of the allowed list..." >> ${LOGFILE}
+                changed=$changed_entries
+            else
+                echo "All file changes are in the allowed list, checking diffs..." >> ${LOGFILE}
+                # All files are in the allowed list, now check diffs for bosh_ differences
+                # Group the files into pairs (base and dash versions)
+                local base_files=(
+                    "/etc/group"
+                    "/etc/gshadow"
+                    "/etc/passwd"
+                    "/etc/shadow"
+                    "/etc/subgid"
+                    "/etc/subuid"
+                )
+                
+                # If in test mode, override with test paths
+                if [ "$TEST_MODE" = "true" ] && [ -n "$TEST_FILES_DIR" ]; then
+                    base_files=(
+                        "${TEST_FILES_DIR}/group"
+                        "${TEST_FILES_DIR}/gshadow"
+                        "${TEST_FILES_DIR}/passwd"
+                        "${TEST_FILES_DIR}/shadow"
+                        "${TEST_FILES_DIR}/subgid"
+                        "${TEST_FILES_DIR}/subuid"
+                    )
+                fi
+                
+                for base_file in "${base_files[@]}"; do
+                    local dash_file="${base_file}-"
+                    
+                    # Check if the file is in the base or dash file list
+                    if echo "$changed_files" | grep -q "^${base_file}$" || echo "$changed_files" | grep -q "^${dash_file}$"; then
+                        echo "Checking diff for $base_file and $dash_file" >> ${LOGFILE}
+                        # Check if both files exist on the system
+                        if [ -f "$base_file" ] && [ -f "$dash_file" ]; then
+                            # Perform diff and check for non-bosh_ differences
+                            set +e
+                            local diff_output=$(diff "$dash_file" "$base_file" 2>/dev/null || true)
+                            
+                            if [ -n "$diff_output" ]; then
+                                # Extract lines from dash_file (lines starting with <)
+                                local dash_lines=$(echo "$diff_output" | grep "^<" | sed 's/^< //')
+                                # Extract lines from base_file (lines starting with >)
+                                local base_lines=$(echo "$diff_output" | grep "^>" | sed 's/^> //')
+                                
+                                # Check if all dash_file lines contain bosh_ (only if there are dash lines)
+                                local all_dash_have_bosh=true
+                                if [ -n "$dash_lines" ]; then
+                                    while IFS= read -r line; do
+                                        if ! echo "$line" | grep -q "bosh_"; then
+                                            all_dash_have_bosh=false
+                                            break
+                                        fi
+                                    done <<< "$dash_lines"
+                                else
+                                    # No dash lines, so set to false to not trigger the ignore condition
+                                    all_dash_have_bosh=false
+                                fi
+                                
+                                # Check if all base_file lines contain bosh_ (only if there are base lines)
+                                local all_base_have_bosh=true
+                                if [ -n "$base_lines" ]; then
+                                    while IFS= read -r line; do
+                                        if ! echo "$line" | grep -q "bosh_"; then
+                                            all_base_have_bosh=false
+                                            break
+                                        fi
+                                    done <<< "$base_lines"
+                                else
+                                    # No base lines, so set to false to not trigger the ignore condition
+                                    all_base_have_bosh=false
+                                fi
+                                
+                                # If EITHER all dash lines OR all base lines contain bosh_ (and they exist), don't count as change
+                                if { [ -n "$dash_lines" ] && [ "$all_dash_have_bosh" = true ]; } || { [ -n "$base_lines" ] && [ "$all_base_have_bosh" = true ]; }; then
+                                    echo "All lines in at least one side contain bosh_ in $base_file - not counting as change" >> ${LOGFILE}
+                                else
+                                    echo "Found changes without bosh_ in both sides for $base_file" >> ${LOGFILE}
+                                    ((changed++))
+                                fi
+                            else
+                                echo "No differences found between $dash_file and $base_file" >> ${LOGFILE}
+                            fi
+                            set -e
+                        else
+                            # If files don't exist for diff, count it as a change
+                            echo "Warning: Cannot diff $base_file and $dash_file - one or both files missing" >> ${LOGFILE}
+                            ((changed++))
+                        fi
+                    fi
+                done
+            fi
+        fi
+    fi
+    
+    # Return the changed value
+    echo "$changed"
+}
