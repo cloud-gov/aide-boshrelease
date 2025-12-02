@@ -13,3 +13,4 @@ releases/**/*.tgz
 *#
 #*
 tmp
+jobs/aide/templates/bin/test_scenarios

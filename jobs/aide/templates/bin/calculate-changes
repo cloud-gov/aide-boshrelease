@@ -180,6 +180,12 @@ calculate_changes() {
                                     echo "All lines in at least one side contain bosh_ in $base_file - not counting as change" >> ${LOGFILE}
                                 else
                                     echo "Found changes without bosh_ in both sides for $base_file" >> ${LOGFILE}
+                                    echo "Base file contents for $base_file:" >> ${LOGFILE}
+                                    cat "$base_file" >> ${LOGFILE}
+                                    echo "Dash file contents for $dash_file:" >> ${LOGFILE}
+                                    cat "$dash_file" >> ${LOGFILE}
+                                    echo "Diff output:" >> ${LOGFILE}
+                                    echo "$diff_output" >> ${LOGFILE}
                                     ((changed++))
                                 fi
                             else
