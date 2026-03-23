@@ -133,7 +133,7 @@ calculate_changes() {
                     local dash_file="${base_file}-"
                     
                     # Check if the file is in the base or dash file list
-                    if echo "$changed_files" | grep -q "^${base_file}$" || echo "$changed_files" | grep -q "^${dash_file}$"; then
+                    if echo "$changed_files" | grep -q -E "(^| )${base_file}( |$)" || echo "$changed_files" | grep -q -E "(^| )${dash_file}( |$)"; then
                         echo "Checking diff for $base_file and $dash_file" >> ${LOGFILE}
                         # Check if both files exist on the system
                         if [ -f "$base_file" ] && [ -f "$dash_file" ]; then
@@ -179,10 +179,43 @@ calculate_changes() {
                                 if { [ -n "$dash_lines" ] && [ "$all_dash_have_bosh" = true ]; } || { [ -n "$base_lines" ] && [ "$all_base_have_bosh" = true ]; }; then
                                     echo "All lines in at least one side contain bosh_ in $base_file - not counting as change" >> ${LOGFILE}
                                 else
-                                    echo "Found changes without bosh_ in both sides for $base_file" >> ${LOGFILE}
-                                    echo "Diff output:" >> ${LOGFILE}
-                                    echo "$diff_output" >> ${LOGFILE}
-                                    ((changed++))
+                                    # Check for the special /etc/shadow case where only the password date changed
+                                    if [[ "$base_file" == *"/shadow" ]]; then
+                                        # This logic is only for a single line change, e.g., 31c31
+                                        local left_lines_count=$(echo "$diff_output" | grep -c "^< ")
+                                        local right_lines_count=$(echo "$diff_output" | grep -c "^> ")
+
+                                        if [ "$left_lines_count" -eq 1 ] && [ "$right_lines_count" -eq 1 ]; then
+                                            # Create versions of the lines with the 3rd field (date) neutralized
+                                            local line1_mod=$(echo "$dash_lines" | awk -F: -v OFS=: '{$3="DUMMY"; print $0}')
+                                            local line2_mod=$(echo "$base_lines" | awk -F: -v OFS=: '{$3="DUMMY"; print $0}')
+
+                                            if [ "$line1_mod" == "$line2_mod" ]; then
+                                                # The only difference was the date, so we ignore this change.
+                                                echo "Ignoring change for $base_file: only the last password change date (field 3) differs." >> ${LOGFILE}
+                                                echo "Diff output:" >> ${LOGFILE}
+                                                echo "$diff_output" >> ${LOGFILE}
+                                            else
+                                                # There were other differences besides the date. Count it.
+                                                echo "Found changes in $base_file beyond just the password date. Counting as change." >> ${LOGFILE}
+                                                echo "Diff output:" >> ${LOGFILE}
+                                                echo "$diff_output" >> ${LOGFILE}
+                                                ((changed++))
+                                            fi
+                                        else
+                                            # The diff is more complex than a single line change. Count it.
+                                            echo "Found complex changes (not a single line change) in $base_file. Counting as change." >> ${LOGFILE}
+                                            echo "Diff output:" >> ${LOGFILE}
+                                            echo "$diff_output" >> ${LOGFILE}
+                                            ((changed++))
+                                        fi
+                                    else
+                                        # This is for all other files that aren't /etc/shadow
+                                        echo "Found changes without bosh_ in both sides for $base_file" >> ${LOGFILE}
+                                        echo "Diff output:" >> ${LOGFILE}
+                                        echo "$diff_output" >> ${LOGFILE}
+                                        ((changed++))
+                                    fi
                                 fi
                             else
                                 echo "No differences found between $dash_file and $base_file" >> ${LOGFILE}
