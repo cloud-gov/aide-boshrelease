@@ -244,6 +244,73 @@ EOF
     check_test_result "Scenario 6: mixed bosh_ and non-bosh_ changes" "$result" "1" "$log_file"
 }
 
+
+# ######################################################################################
+# Scenario 7: Test /etc/shadow file with changes that should be ignored (password date changes only)
+# ######################################################################################
+
+test_scenario_7() {
+    local scenario="scenario7_shadow_changes"
+    create_test_scenario "$scenario"
+    local scenario_dir="${TEST_DIR}/${scenario}"
+    local log_file="${scenario_dir}/test.log"
+    
+    # Create test report.txt
+    cat > "${scenario_dir}/report.txt" << 'EOF'
+Changed entries:     0
+
+---------------------------------------------------
+Changed entries:
+---------------------------------------------------
+
+f > .: ./test_scenarios/scenario7_shadow_changes/shadow
+
+---------------------------------------------------
+EOF
+    
+    # Create test files with vcap date changes
+    echo 'vcap:$6$blorp$EK9JEgz2NAblrop:20000:1:90:7:30::' > "${scenario_dir}/shadow-"
+    echo 'vcap:$6$blorp$EK9JEgz2NAblrop:21234:1:90:7:30::' > "${scenario_dir}/shadow"
+   
+    # Run the test
+    local result=$(calculate_changes "$log_file" "${scenario_dir}/report.txt" "true" "$scenario_dir")
+    check_test_result "Scenario 7: shadow changes" "$result" "0" "$log_file"
+}
+
+# ######################################################################################
+# Scenario 8: Test /etc/shadow file with changes that should be not be ignored (something other than password date changes)
+# ######################################################################################
+
+test_scenario_8() {
+    local scenario="scenario8_shadow_changes"
+    create_test_scenario "$scenario"
+    local scenario_dir="${TEST_DIR}/${scenario}"
+    local log_file="${scenario_dir}/test.log"
+    
+    # Create test report.txt
+    cat > "${scenario_dir}/report.txt" << 'EOF'
+Changed entries:     1
+
+---------------------------------------------------
+Changed entries:
+---------------------------------------------------
+
+f > .: ./test_scenarios/scenario8_shadow_changes/shadow
+
+---------------------------------------------------
+EOF
+    
+    # Create test files with vcap date changes
+    echo 'not-vcap:$6$blorp$EK9JEgz2NAblrop:20000:1:90:7:30::' > "${scenario_dir}/shadow-"
+    echo 'vcap:$6$blorp$EK9JEgz2NAblrop:21234:1:90:7:30::' > "${scenario_dir}/shadow"
+   
+    # Run the test
+    local result=$(calculate_changes "$log_file" "${scenario_dir}/report.txt" "true" "$scenario_dir")
+    check_test_result "Scenario 8: shadow changes" "$result" "1" "$log_file"
+}
+
+
+
 # Function to print test summary
 print_test_summary() {
     echo ""
@@ -283,6 +350,10 @@ main() {
     test_scenario_5
     echo ""
     test_scenario_6
+    echo ""
+    test_scenario_7
+    echo ""
+    test_scenario_8
     
     # Print summary
     print_test_summary
