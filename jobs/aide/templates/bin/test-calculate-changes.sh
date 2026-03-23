@@ -309,8 +309,6 @@ EOF
     check_test_result "Scenario 8: shadow changes" "$result" "1" "$log_file"
 }
 
-
-
 # Function to print test summary
 print_test_summary() {
     echo ""
@@ -354,7 +352,7 @@ main() {
     test_scenario_7
     echo ""
     test_scenario_8
-    
+
     # Print summary
     print_test_summary
     
