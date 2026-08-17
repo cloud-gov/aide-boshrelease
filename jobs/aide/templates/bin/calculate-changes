@@ -24,7 +24,15 @@ calculate_changes() {
         "/etc/shadow"
         "/etc/subgid"
         "/etc/subuid"
+        "/etc/sysctl.conf"
     )
+
+    # The sysctl.conf file is allowed to change when the OS hardening script
+    # re-applies its ruleset on deploy. Its expected end-of-file marker line is
+    # tracked separately because it has no dash (backup) counterpart to diff
+    # against like the passwd/shadow family does.
+    local sysctl_file="/etc/sysctl.conf"
+    local sysctl_marker="net.ipv4.route.flush=1"
     
     # If in test mode, override with test paths
     if [ "$TEST_MODE" = "true" ] && [ -n "$TEST_FILES_DIR" ]; then
@@ -42,7 +50,9 @@ calculate_changes() {
             "${TEST_FILES_DIR}/shadow"
             "${TEST_FILES_DIR}/subgid"
             "${TEST_FILES_DIR}/subuid"
+            "${TEST_FILES_DIR}/sysctl.conf"
         )
+        sysctl_file="${TEST_FILES_DIR}/sysctl.conf"
     fi
     
     # Extract the number of changed entries
@@ -106,7 +116,30 @@ calculate_changes() {
                 changed=$changed_entries
             else
                 echo "All file changes are in the allowed list, checking diffs..." >> ${LOGFILE}
-                # All files are in the allowed list, now check diffs for bosh_ differences
+
+                # Handle /etc/sysctl.conf separately: the OS hardening script
+                # re-applies its ruleset on deploy, ending the file with the
+                # marker line. If sysctl.conf changed, only skip it when the
+                # last non-empty line equals the expected marker; otherwise
+                # count it as a real change.
+                if echo "$changed_files" | grep -q -E "(^| )${sysctl_file}( |$)"; then
+                    echo "Checking sysctl.conf end-of-file marker for $sysctl_file" >> ${LOGFILE}
+                    if [ -f "$sysctl_file" ]; then
+                        # Last non-empty (non-whitespace-only) line, trailing whitespace stripped
+                        local sysctl_last_line=$(grep -vE '^[[:space:]]*$' "$sysctl_file" | tail -n 1 | sed 's/[[:space:]]*$//')
+                        if [ "$sysctl_last_line" = "$sysctl_marker" ]; then
+                            echo "Ignoring change for $sysctl_file: last non-empty line is the expected marker '${sysctl_marker}'." >> ${LOGFILE}
+                        else
+                            echo "Found change in $sysctl_file: last non-empty line ('${sysctl_last_line}') is not the expected marker '${sysctl_marker}'. Counting as change." >> ${LOGFILE}
+                            ((changed++))
+                        fi
+                    else
+                        echo "Warning: Cannot check $sysctl_file - file missing. Counting as change." >> ${LOGFILE}
+                        ((changed++))
+                    fi
+                fi
+
+                # All file changes are in the allowed list, now check diffs for bosh_ differences
                 # Group the files into pairs (base and dash versions)
                 local base_files=(
                     "/etc/group"
