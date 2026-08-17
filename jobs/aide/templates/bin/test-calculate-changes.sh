@@ -310,6 +310,125 @@ EOF
 }
 
 
+# ######################################################################################
+# Scenario 9: /etc/sysctl.conf change where last non-empty line is the expected marker
+#             -> should be ignored (0)
+# ######################################################################################
+
+test_scenario_9() {
+    local scenario="scenario9_sysctl_marker_present"
+    create_test_scenario "$scenario"
+    local scenario_dir="${TEST_DIR}/${scenario}"
+    local log_file="${scenario_dir}/test.log"
+
+    # Create test report.txt
+    cat > "${scenario_dir}/report.txt" << 'EOF'
+Changed entries:     1
+
+---------------------------------------------------
+Changed entries:
+---------------------------------------------------
+
+f > .: ./test_scenarios/scenario9_sysctl_marker_present/sysctl.conf
+
+---------------------------------------------------
+EOF
+
+    # sysctl.conf ending with the expected marker (plus trailing blank lines
+    # to prove the "last non-empty line" logic tolerates trailing whitespace)
+    cat > "${scenario_dir}/sysctl.conf" << 'EOF'
+kernel.randomize_va_space = 2
+net.ipv4.conf.all.rp_filter=1
+net.ipv4.tcp_syncookies=1
+net.ipv4.route.flush=1
+
+EOF
+
+    # Run the test
+    local result=$(calculate_changes "$log_file" "${scenario_dir}/report.txt" "true" "$scenario_dir")
+    check_test_result "Scenario 9: sysctl.conf with expected marker" "$result" "0" "$log_file"
+}
+
+# ######################################################################################
+# Scenario 10: /etc/sysctl.conf change where last non-empty line is NOT the marker
+#              -> should be counted (1)
+# ######################################################################################
+
+test_scenario_10() {
+    local scenario="scenario10_sysctl_marker_absent"
+    create_test_scenario "$scenario"
+    local scenario_dir="${TEST_DIR}/${scenario}"
+    local log_file="${scenario_dir}/test.log"
+
+    # Create test report.txt
+    cat > "${scenario_dir}/report.txt" << 'EOF'
+Changed entries:     1
+
+---------------------------------------------------
+Changed entries:
+---------------------------------------------------
+
+f > .: ./test_scenarios/scenario10_sysctl_marker_absent/sysctl.conf
+
+---------------------------------------------------
+EOF
+
+    # sysctl.conf NOT ending with the expected marker
+    cat > "${scenario_dir}/sysctl.conf" << 'EOF'
+kernel.randomize_va_space = 2
+net.ipv4.route.flush=1
+net.ipv4.ip_forward=1
+EOF
+
+    # Run the test
+    local result=$(calculate_changes "$log_file" "${scenario_dir}/report.txt" "true" "$scenario_dir")
+    check_test_result "Scenario 10: sysctl.conf without expected marker as last line" "$result" "1" "$log_file"
+}
+
+# ######################################################################################
+# Scenario 11: sysctl.conf (marker present, ignored) combined with a non-bosh passwd
+#              change (counted) -> only the passwd change counts (1)
+# ######################################################################################
+
+test_scenario_11() {
+    local scenario="scenario11_sysctl_marker_plus_passwd"
+    create_test_scenario "$scenario"
+    local scenario_dir="${TEST_DIR}/${scenario}"
+    local log_file="${scenario_dir}/test.log"
+
+    # Create test report.txt
+    cat > "${scenario_dir}/report.txt" << 'EOF'
+Changed entries:     2
+
+---------------------------------------------------
+Changed entries:
+---------------------------------------------------
+
+f > .: ./test_scenarios/scenario11_sysctl_marker_plus_passwd/sysctl.conf
+f > .: ./test_scenarios/scenario11_sysctl_marker_plus_passwd/passwd
+
+---------------------------------------------------
+EOF
+
+    # sysctl.conf ending with the expected marker -> ignored
+    cat > "${scenario_dir}/sysctl.conf" << 'EOF'
+kernel.randomize_va_space = 2
+net.ipv4.route.flush=1
+EOF
+
+    # passwd with a non-bosh change -> counted
+    echo "root:x:0:0:root:/root:/bin/bash" > "${scenario_dir}/passwd-"
+    echo "user1:x:1001:1001::/home/user1:/bin/bash" >> "${scenario_dir}/passwd-"
+
+    echo "root:x:0:0:root:/root:/bin/bash" > "${scenario_dir}/passwd"
+    echo "user1:x:1001:1001::/home/user1:/bin/bash" >> "${scenario_dir}/passwd"
+    echo "user2:x:1002:1002::/home/user2:/bin/bash" >> "${scenario_dir}/passwd"
+
+    # Run the test
+    local result=$(calculate_changes "$log_file" "${scenario_dir}/report.txt" "true" "$scenario_dir")
+    check_test_result "Scenario 11: sysctl.conf marker ignored + passwd counted" "$result" "1" "$log_file"
+}
+
 
 # Function to print test summary
 print_test_summary() {
@@ -354,6 +473,12 @@ main() {
     test_scenario_7
     echo ""
     test_scenario_8
+    echo ""
+    test_scenario_9
+    echo ""
+    test_scenario_10
+    echo ""
+    test_scenario_11
     
     # Print summary
     print_test_summary
